@@ -3,640 +3,820 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ТЕСТИРОВАНИЕ ВПР</title>
+    <title>SYSTEM_BREACH.exe</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Courier New', monospace;
             user-select: none;
         }
         
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            background-color: #000;
+            color: #0f0;
             overflow: hidden;
-            min-height: 90vh;
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
         }
         
-        .header {
-            background: linear-gradient(135deg, #4a6fa5 0%, #2c3e50 100%);
-            color: white;
-            padding: 25px;
-            text-align: center;
-        }
-        
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        
-        .header h2 {
-            font-size: 1.2em;
-            opacity: 0.9;
-            font-weight: normal;
+        #matrix {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.3;
+            pointer-events: none;
         }
         
         .screen {
-            padding: 30px;
-            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            text-align: center;
         }
         
-        .screen.active {
-            display: block;
-            animation: fadeIn 0.5s ease;
+        h1 {
+            color: #0f0;
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #0f0;
+            animation: pulse 2s infinite;
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
         }
         
-        .grade-buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin: 40px 0;
+        h2 {
+            color: #0f0;
+            font-size: 2em;
+            margin: 20px 0;
         }
         
-        .grade-btn {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            color: white;
-            border: none;
-            padding: 25px;
-            font-size: 1.3em;
-            border-radius: 10px;
+        h3 {
+            color: #0ff;
+            font-size: 1.5em;
+            margin: 10px 0;
+        }
+        
+        .warning {
+            color: #f00;
+            font-size: 1.2em;
+            animation: blink 1s infinite;
+            font-weight: bold;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        .btn {
+            background-color: #002200;
+            color: #0f0;
+            border: 2px solid #0f0;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            margin: 10px;
             cursor: pointer;
             transition: all 0.3s;
-            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.3);
+            border-radius: 5px;
         }
         
-        .grade-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(106, 17, 203, 0.4);
+        .btn:hover {
+            background-color: #0f0;
+            color: #000;
+            box-shadow: 0 0 15px #0f0;
         }
         
-        .grade-btn:active {
-            transform: translateY(-2px);
+        .btn-red {
+            background-color: #220000;
+            border-color: #f00;
+            color: #f00;
+        }
+        
+        .btn-red:hover {
+            background-color: #f00;
+            color: #fff;
+            box-shadow: 0 0 15px #f00;
+        }
+        
+        .btn-blue {
+            background-color: #000022;
+            border-color: #00f;
+            color: #00f;
+        }
+        
+        .btn-blue:hover {
+            background-color: #00f;
+            color: #fff;
+            box-shadow: 0 0 15px #00f;
         }
         
         .question-container {
-            background: #f8f9fa;
+            max-width: 900px;
+            width: 100%;
+            background-color: rgba(0, 30, 0, 0.8);
+            border: 2px solid #0f0;
             border-radius: 10px;
-            padding: 25px;
-            margin: 20px 0;
-            border-left: 5px solid #4a6fa5;
+            padding: 20px;
+            margin: 20px;
+            text-align: left;
         }
         
         .question-text {
-            font-size: 1.2em;
-            margin-bottom: 25px;
-            line-height: 1.6;
+            color: #fff;
+            font-size: 1.3em;
+            margin-bottom: 30px;
+            line-height: 1.5;
         }
         
         .options {
             display: grid;
             grid-template-columns: 1fr;
             gap: 15px;
+            margin: 20px 0;
         }
         
         .option {
-            background: white;
-            border: 2px solid #e0e0e0;
-            padding: 18px;
-            border-radius: 8px;
+            background-color: #001100;
+            border: 1px solid #0a0;
+            padding: 15px;
             cursor: pointer;
             transition: all 0.3s;
-            display: flex;
-            align-items: center;
+            border-radius: 5px;
         }
         
         .option:hover {
-            border-color: #4a6fa5;
-            background: #f0f7ff;
+            background-color: #003300;
+            border-color: #0f0;
         }
         
         .option.selected {
-            border-color: #4a6fa5;
-            background: #e3f2fd;
-        }
-        
-        .option-number {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            background: #4a6fa5;
-            color: white;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 30px;
-            margin-right: 15px;
+            background-color: #0a0;
+            color: #000;
             font-weight: bold;
         }
         
-        .navigation {
+        .question-nav {
             display: flex;
             justify-content: space-between;
             margin-top: 30px;
         }
         
-        .nav-btn {
-            background: #4a6fa5;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: background 0.3s;
-        }
-        
-        .nav-btn:hover {
-            background: #3a5a8a;
-        }
-        
-        .nav-btn:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
-        }
-        
-        .progress-bar {
-            height: 6px;
-            background: #e0e0e0;
-            border-radius: 3px;
-            margin: 20px 0;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4a6fa5, #6a11cb);
-            width: 0%;
-            transition: width 0.5s ease;
-        }
-        
-        .question-counter {
-            text-align: center;
-            color: #666;
-            margin: 10px 0;
-            font-size: 0.9em;
-        }
-        
-        .results-screen {
-            text-align: center;
-            padding: 50px 20px;
-        }
-        
-        .results-grade {
-            font-size: 4em;
-            color: #4a6fa5;
-            margin: 20px 0;
-            font-weight: bold;
-        }
-        
-        .results-text {
-            font-size: 1.5em;
-            margin: 20px 0;
-            color: #333;
-        }
-        
-        .restart-btn {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.2em;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 30px;
-            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.3);
-        }
-        
         .question-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
-            gap: 10px;
-            margin: 20px 0;
+            position: fixed;
+            left: 20px;
+            top: 100px;
+            background-color: rgba(0, 20, 0, 0.9);
+            border: 1px solid #0a0;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 70vh;
+            overflow-y: auto;
         }
         
-        .question-list-btn {
-            width: 50px;
-            height: 50px;
-            border: 2px solid #4a6fa5;
-            border-radius: 8px;
-            background: white;
+        .question-item {
+            padding: 5px 10px;
+            margin: 3px 0;
             cursor: pointer;
+            border-radius: 3px;
+        }
+        
+        .question-item.current {
+            background-color: #0a0;
+            color: #000;
             font-weight: bold;
-            transition: all 0.3s;
         }
         
-        .question-list-btn.current {
-            background: #4a6fa5;
-            color: white;
+        .question-item.answered {
+            color: #0f0;
         }
         
-        .question-list-btn.answered {
-            background: #e3f2fd;
-            border-color: #2196f3;
+        .question-item.password {
+            color: #0ff;
         }
         
-        .timer {
-            text-align: right;
-            color: #666;
-            font-size: 1.1em;
-            margin-bottom: 10px;
-        }
-        
-        .subject-info {
+        .password-input {
+            background-color: #001100;
+            color: #0f0;
+            border: 2px solid #0a0;
+            padding: 15px;
+            font-size: 1.5em;
+            width: 100%;
             text-align: center;
-            color: #666;
-            margin: 10px 0;
-            font-size: 1.1em;
+            letter-spacing: 5px;
+            margin: 20px 0;
+            border-radius: 5px;
         }
         
-        @media (max-width: 768px) {
-            .grade-buttons {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .container {
-                margin: 10px;
-            }
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 300px;
+            margin: 20px auto;
+        }
+        
+        .keypad-btn {
+            background-color: #002200;
+            color: #0f0;
+            border: 1px solid #0a0;
+            padding: 20px;
+            font-size: 1.5em;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        
+        .keypad-btn:hover {
+            background-color: #004400;
+        }
+        
+        .lockdown-screen {
+            background-color: #f00;
+            animation: redPulse 0.5s infinite;
+        }
+        
+        @keyframes redPulse {
+            0%, 100% { background-color: #f00; }
+            50% { background-color: #800; }
+        }
+        
+        .lockdown-text {
+            color: #fff;
+            font-size: 3em;
+            text-shadow: 0 0 10px #fff;
+            margin-bottom: 30px;
+        }
+        
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(0, 20, 0, 0.9);
+            padding: 10px;
+            text-align: center;
+            border-top: 2px solid #0a0;
+            z-index: 100;
+        }
+        
+        .progress {
+            color: #0ff;
+            font-weight: bold;
+        }
+        
+        .lockdown-warning {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            color: #f00;
+            font-weight: bold;
+            animation: blink 0.5s infinite;
+        }
+        
+        .char {
+            position: absolute;
+            color: #0f0;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .congrats-text {
+            color: #0f0;
+            font-size: 2.5em;
+            margin: 20px 0;
+            text-shadow: 0 0 10px #0f0;
+            animation: colorChange 3s infinite;
+        }
+        
+        @keyframes colorChange {
+            0% { color: #0f0; }
+            33% { color: #0ff; }
+            66% { color: #f0f; }
+            100% { color: #0f0; }
+        }
+        
+        #blocker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 0, 0, 0.9);
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        #closeAttempts {
+            font-size: 4em;
+            color: white;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        #attemptText {
+            color: white;
+            font-size: 2em;
+            text-align: center;
+        }
+        
+        .class-buttons {
+            display: flex;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .class-btn {
+            background-color: #002200;
+            color: #0f0;
+            border: 2px solid #0f0;
+            padding: 20px 40px;
+            font-size: 1.5em;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+            min-width: 150px;
+        }
+        
+        .class-btn:hover {
+            background-color: #0f0;
+            color: #000;
+            box-shadow: 0 0 20px #0f0;
+            transform: scale(1.05);
+        }
+        
+        .class-btn.selected {
+            background-color: #0f0;
+            color: #000;
+            font-weight: bold;
+            box-shadow: 0 0 25px #0f0;
+        }
+        
+        .class-info {
+            color: #0ff;
+            font-size: 1.2em;
+            margin-top: 20px;
+            max-width: 600px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>ВСЕРОССИЙСКИЕ ПРОВЕРОЧНЫЕ РАБОТЫ</h1>
-            <h2>Тестирование по материалам ФИПИ</h2>
+    <div id="matrix"></div>
+    
+    <div id="blocker">
+        <div id="closeAttempts">0</div>
+        <div id="attemptText">ПОПЫТКА НЕСАНКЦИОНИРОВАННОГО ВЫХОДА<br>СИСТЕМА ЗАБЛОКИРОВАНА</div>
+    </div>
+    
+    <!-- Экран выбора класса -->
+    <div id="classSelectScreen" class="screen">
+        <h1>СИСТЕМА БЕЗОПАСНОСТИ</h1>
+        <h2>ДОСТУП К ЦЕНТРАЛЬНОМУ СЕРВЕРУ</h2>
+        
+        <h3 style="color: #0ff; margin-top: 30px;">ВЫБЕРИТЕ КЛАСС ДОСТУПА</h3>
+        
+        <div class="class-buttons">
+            <button class="class-btn" onclick="selectClass(7)">7 КЛАСС</button>
+            <button class="class-btn" onclick="selectClass(8)">8 КЛАСС</button>
         </div>
         
-        <!-- Экран выбора класса -->
-        <div id="gradeSelectScreen" class="screen active">
-            <h2 style="text-align: center; margin: 30px 0; color: #333;">ВЫБЕРИТЕ КЛАСС ДЛЯ ТЕСТИРОВАНИЯ</h2>
-            <div class="grade-buttons">
-                <button class="grade-btn" onclick="selectGrade(7)">7 КЛАСС</button>
-                <button class="grade-btn" onclick="selectGrade(8)">8 КЛАСС</button>
-                <button class="grade-btn" onclick="selectGrade(9)">9 КЛАСС</button>
-                <button class="grade-btn" onclick="selectGrade(10)">10 КЛАСС</button>
+        <div class="class-info">
+            <div id="class7info" style="display: none;">
+                <p>ИНФОРМАТИКА 7 КЛАСС</p>
+                <p>• Системы счисления</p>
+                <p>• Кодирование информации</p>
+                <p>• Основы алгоритмизации</p>
+                <p>• Логические операции</p>
+                <p>Вопросы из банка ФИПИ ВПР</p>
             </div>
-            <p style="text-align: center; color: #666; margin-top: 30px;">
-                Тест содержит задания из открытого банка ФИПИ для ВПР
-            </p>
-        </div>
-        
-        <!-- Экран тестирования -->
-        <div id="testScreen" class="screen">
-            <div class="timer" id="timer">Время: 45:00</div>
-            <div class="subject-info" id="subjectInfo">Математика 7 класс</div>
-            <div class="question-counter" id="questionCounter">Вопрос 1 из 15</div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-            
-            <div class="question-container">
-                <div class="question-text" id="questionText">Загрузка вопроса...</div>
-                <div class="options" id="options">
-                    <!-- Варианты ответов будут здесь -->
-                </div>
-            </div>
-            
-            <div class="navigation">
-                <button class="nav-btn" onclick="prevQuestion()" id="prevBtn">← Назад</button>
-                <button class="nav-btn" onclick="nextQuestion()" id="nextBtn">Далее →</button>
-            </div>
-            
-            <div class="question-list" id="questionList">
-                <!-- Кнопки навигации по вопросам -->
+            <div id="class8info" style="display: none;">
+                <p>ИНФОРМАТИКА 8 КЛАСС</p>
+                <p>• Алгоритмы и программирование</p>
+                <p>• Базы данных</p>
+                <p>• Сетевые технологии</p>
+                <p>• Компьютерная графика</p>
+                <p>• Защита информации</p>
             </div>
         </div>
         
-        <!-- Экран результатов -->
-        <div id="resultsScreen" class="screen">
-            <div class="results-screen">
-                <h2>РЕЗУЛЬТАТЫ ТЕСТИРОВАНИЯ</h2>
-                <div class="results-grade" id="finalGrade">5</div>
-                <div class="results-text" id="resultText">Отличный результат!</div>
-                <p id="resultDetails">Вы ответили правильно на 15 из 15 вопросов</p>
-                <p style="color: #666; margin: 20px 0;">
-                    Время выполнения: <span id="timeSpent">45:00</span>
-                </p>
-                <button class="restart-btn" onclick="restartTest()">Пройти тест заново</button>
+        <div id="activateBtnContainer" style="display: none; margin-top: 30px;">
+            <button class="btn" onclick="startGame()">АКТИВИРОВАТЬ СИСТЕМУ</button>
+        </div>
+        
+        <div style="margin-top: 50px;">
+            <p class="warning">ВНИМАНИЕ: ПОПЫТКИ ВЫХОДА БУДУТ ЗАБЛОКИРОВАНЫ</p>
+        </div>
+    </div>
+    
+    <!-- Экран вопросов -->
+    <div id="questionScreen" class="screen" style="display: none;">
+        <h2>ТЕСТ БЕЗОПАСНОСТИ</h2>
+        <h3 id="questionNumber">Вопрос 1 из 15</h3>
+        <div id="questionType" style="color: #ff0;">Тема: Загрузка...</div>
+        
+        <div class="question-container">
+            <div id="questionText" class="question-text">
+                Загрузка вопроса...
+            </div>
+            
+            <div id="options" class="options">
+                <!-- Варианты ответов будут здесь -->
+            </div>
+            
+            <div class="question-nav">
+                <button class="btn" onclick="prevQuestion()" id="prevBtn">← НАЗАД</button>
+                <button class="btn" onclick="nextQuestion()" id="nextBtn">ДАЛЕЕ →</button>
             </div>
         </div>
+        
+        <div class="question-list" id="questionList">
+            <div style="color: #0f0; margin-bottom: 10px; font-weight: bold;">ВОПРОСЫ:</div>
+        </div>
+    </div>
+    
+    <!-- Экран пароля -->
+    <div id="passwordScreen" class="screen" style="display: none;">
+        <h2>ФИНАЛЬНЫЙ ШАГ</h2>
+        <h3 style="color: #f00;">ПРИШЛО ВРЕМЯ УЙТИ ОТСЮДА</h3>
+        <div style="color: #0f0; font-size: 1.2em; max-width: 800px; margin: 20px auto;">
+            Введи пароль - это правильные ответы на все предыдущие вопросы по порядку
+        </div>
+        
+        <div class="password-input" id="passwordDisplay">_______________</div>
+        
+        <div style="color: #ff0; margin-bottom: 20px;">
+            Введите 15-значный пароль (номера правильных ответов на вопросы 1-15)
+        </div>
+        
+        <div class="keypad" id="keypad">
+            <!-- Клавиатура будет создана JavaScript -->
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <button class="btn" onclick="checkPassword()">ПРОВЕРИТЬ ПАРОЛЬ</button>
+            <button class="btn btn-blue" onclick="backToQuestions()">← К ВОПРОСАМ</button>
+        </div>
+    </div>
+    
+    <!-- Экран блокировки -->
+    <div id="lockdownScreen" class="screen lockdown-screen" style="display: none;">
+        <div class="lockdown-text">!</div>
+        <div class="lockdown-text">ПОПЫТКА НЕСАНКЦИОНИРОВАННОГО ВЫХОДА</div>
+        <div class="lockdown-text">СИСТЕМА ЗАБЛОКИРОВАНА</div>
+        
+        <div style="background-color: #000; padding: 20px; border-radius: 10px; margin: 30px; max-width: 400px;">
+            <div class="password-input" id="lockdownDisplay">________</div>
+            <div style="color: #fff; margin: 10px 0;" id="lockdownMessage">
+                Введите пароль для разблокировки
+            </div>
+            
+            <div class="keypad" id="lockdownKeypad">
+                <!-- Клавиатура блокировки будет создана JavaScript -->
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <button class="btn btn-red" onclick="checkLockdownPassword()">ВВОД</button>
+            </div>
+        </div>
+        
+        <div class="lockdown-warning" id="lockdownWarning">
+            РЕЖИМ БЛОКИРОВКИ АКТИВИРОВАН
+        </div>
+    </div>
+    
+    <!-- Экран поздравления -->
+    <div id="congratsScreen" class="screen" style="display: none;">
+        <div class="congrats-text">ДОСТУП РАЗРЕШЕН</div>
+        <div class="congrats-text">СИСТЕМНЫЙ ВЗЛОМ УСПЕШЕН</div>
+        <div class="congrats-text">ПАРОЛЬ ПОДТВЕРЖДЕН</div>
+        <div class="congrats-text">ВЫ ПОЛУЧАЕТЕ 5 ЗА УРОК</div>
+        <div class="congrats-text">ОЦЕНКА: 5/5</div>
+        
+        <button class="btn btn-red" onclick="exitGame()" style="margin-top: 50px;">ВЫЙТИ ИЗ СИСТЕМЫ</button>
+    </div>
+    
+    <div class="status-bar" id="statusBar" style="display: none;">
+        <div class="progress" id="progressText">Ответов: 0/15</div>
+        <div style="color: #f00;">СИСТЕМА ЗАБЛОКИРОВАНА • ИСПОЛЬЗУЙТЕ МЫШЬ</div>
     </div>
 
     <script>
-        // === КОНФИГУРАЦИЯ ТЕСТА ===
-        const CONFIG = {
-            timeLimit: 45 * 60, // 45 минут в секундах
-            questionsPerTest: 15
-        };
-        
-        // === ПЕРЕМЕННЫЕ ===
+        // === ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ===
         let currentGrade = null;
-        let currentTest = null;
+        let currentGame = null;
         let userAnswers = [];
+        let gameState = "classSelect";
         let currentQuestionIndex = 0;
-        let timeLeft = CONFIG.timeLimit;
-        let timerInterval = null;
+        let userPassword = "";
+        let lockdownPassword = "";
+        let lockdownAttempts = 0;
+        let closeAttempts = 0;
+        let isLocked = true;
+        let correctPassword = "";
+        let unlockPassword = "";
         
-        // === БАНК ВОПРОСОВ ПО КЛАССАМ ===
+        // === БАНК ВОПРОСОВ ПО КЛАССАМ (ИНФОРМАТИКА ВПР) ===
         const QUESTION_BANK = {
             7: [
-                // МАТЕМАТИКА (5 вопросов)
+                // 1. Системы счисления
                 {
-                    text: "В школе 800 учеников, из них 30% — ученики начальной школы. Среди учеников средней и старшей школы 20% изучают французский язык. Сколько учеников в школе изучают французский язык?",
-                    correct: 112,
-                    subject: "Математика",
-                    category: "Проценты"
+                    text: "Переведите двоичное число 11001 в десятичную систему.",
+                    correct: 25,
+                    type: "Системы счисления"
                 },
                 {
-                    text: "Найдите значение выражения: 2,5 * 1,2 + 3,4 : 0,1",
-                    correct: 37,
-                    subject: "Математика", 
-                    category: "Арифметика"
-                },
-                {
-                    text: "Длина прямоугольника равна 12 см, а ширина составляет 75% от длины. Найдите периметр этого прямоугольника.",
-                    correct: 42,
-                    subject: "Математика",
-                    category: "Геометрия"
-                },
-                {
-                    text: "Сколько существует целых решений неравенства: -3 ≤ 2x - 1 < 5?",
+                    text: "Сколько единиц в двоичной записи числа 77?",
                     correct: 4,
-                    subject: "Математика",
-                    category: "Алгебра"
+                    type: "Системы счисления"
                 },
                 {
-                    text: "В классе 28 учеников. Отношение числа девочек к числу мальчиков равно 3:4. Сколько в классе девочек?",
-                    correct: 12,
-                    subject: "Математика",
-                    category: "Отношения"
+                    text: "Чему равна сумма чисел 1011₂ и 1101₂ в двоичной системе?",
+                    correct: 11000,
+                    type: "Системы счисления"
                 },
                 
-                // РУССКИЙ ЯЗЫК (5 вопросов)
+                // 2. Кодирование информации
                 {
-                    text: "Сколько звуков в слове 'подъезд'?",
+                    text: "Сколько бит требуется для кодирования 32 различных символов?",
+                    correct: 5,
+                    type: "Кодирование"
+                },
+                {
+                    text: "Сколько байт занимает слово 'ИНФОРМАТИКА' в кодировке Windows-1251?",
+                    correct: 11,
+                    type: "Кодирование"
+                },
+                {
+                    text: "Какой информационный объем у черно-белого изображения размером 100×100 пикселей? (1 пиксель = 1 бит)",
+                    correct: 1250,
+                    type: "Кодирование"
+                },
+                
+                // 3. Основы алгоритмизации
+                {
+                    text: "Чему будет равно значение переменной X после выполнения алгоритма: X=5; X=X*2; X=X-3;",
                     correct: 7,
-                    subject: "Русский язык",
-                    category: "Фонетика"
+                    type: "Алгоритмы"
                 },
                 {
-                    text: "Сколько грамматических основ в предложении: 'Солнце взошло, и птицы запели'?",
-                    correct: 2,
-                    subject: "Русский язык",
-                    category: "Синтаксис"
+                    text: "Сколько раз выполнится цикл: for i from 1 to 10 step 2?",
+                    correct: 5,
+                    type: "Алгоритмы"
                 },
                 {
-                    text: "Укажите количество запятых, необходимых в предложении: 'Когда мы пришли домой который находился на окраине города уже стемнело.'",
-                    correct: 3,
-                    subject: "Русский язык",
-                    category: "Пунктуация"
-                },
-                {
-                    text: "Сколько приставок в слове 'переподготовка'?",
-                    correct: 2,
-                    subject: "Русский язык",
-                    category: "Морфемика"
-                },
-                {
-                    text: "Определите количество букв и звуков в слове 'объявление'",
-                    correct: 20,
-                    subject: "Русский язык",
-                    category: "Фонетика"
+                    text: "Какое значение примет переменная S после выполнения: S=0; for k from 1 to 5: S=S+k;",
+                    correct: 15,
+                    type: "Алгоритмы"
                 },
                 
-                // ОБЩЕСТВОЗНАНИЕ (5 вопросов)
+                // 4. Логические операции
                 {
-                    text: "В каком году была принята Конституция Российской Федерации?",
-                    correct: 1993,
-                    subject: "Обществознание",
-                    category: "Право"
+                    text: "Какое значение имеет выражение: (1 И 0) ИЛИ (НЕ(0))?",
+                    correct: 1,
+                    type: "Логика"
                 },
                 {
-                    text: "Сколько субъектов в Российской Федерации?",
-                    correct: 85,
-                    subject: "Обществознание",
-                    category: "Геополитика"
+                    text: "Для какого значения X истинно выражение: (X>3) И (X<7)?",
+                    correct: 5,
+                    type: "Логика"
                 },
                 {
-                    text: "Минимальный возраст для избрания Президентом РФ составляет:",
-                    correct: 35,
-                    subject: "Обществознание",
-                    category: "Право"
+                    text: "Сколько решений имеет уравнение: (X>2) И (X<6) И (X≠4)?",
+                    correct: 3,
+                    type: "Логика"
+                },
+                
+                // 5. История и устройство компьютера
+                {
+                    text: "В каком году был создан первый электронный компьютер ENIAC?",
+                    correct: 1946,
+                    type: "История"
                 },
                 {
-                    text: "Сколько лет длилась Великая Отечественная война?",
-                    correct: 4,
-                    subject: "Обществознание", 
-                    category: "История"
+                    text: "Сколько бит в одном байте?",
+                    correct: 8,
+                    type: "Устройство ПК"
                 },
                 {
-                    text: "В каком веке произошло Крещение Руси?",
-                    correct: 10,
-                    subject: "Обществознание",
-                    category: "История"
+                    text: "Какой объем у стандартной дискеты 3.5'' в Кбайтах?",
+                    correct: 1440,
+                    type: "Устройство ПК"
                 }
             ],
             
             8: [
-                // Для 8 класса
+                // 1. Алгоритмы и программирование
                 {
-                    text: "Решите уравнение: 3(x - 4) = 2x + 5",
-                    correct: 17,
-                    subject: "Математика",
-                    category: "Алгебра"
+                    text: "Какое значение выведет программа: a=10; b=20; if a>b: print(a) else: print(b)",
+                    correct: 20,
+                    type: "Программирование"
                 },
                 {
-                    text: "Площадь прямоугольника 48 см², одна сторона 6 см. Найдите периметр.",
-                    correct: 28,
-                    subject: "Математика",
-                    category: "Геометрия"
+                    text: "Сколько раз выполнится тело цикла: i=1; while i<10: i=i*2",
+                    correct: 4,
+                    type: "Программирование"
                 },
                 {
-                    text: "Сколько звуков в слове 'объяснение'?",
-                    correct: 10,
-                    subject: "Русский язык",
-                    category: "Фонетика"
+                    text: "Что выведет программа: for i in range(1,4): print(i*i)",
+                    correct: 14,
+                    type: "Программирование"
+                },
+                
+                // 2. Базы данных
+                {
+                    text: "Сколько записей будет в таблице после выполнения: INSERT INTO users VALUES (1,'Ivan'), (2,'Anna'), (3,'Ivan')",
+                    correct: 3,
+                    type: "Базы данных"
                 },
                 {
-                    text: "Год основания Санкт-Петербурга:",
-                    correct: 1703,
-                    subject: "История",
-                    category: "Даты"
+                    text: "Сколько полей (столбцов) в таблице: CREATE TABLE students (id INT, name TEXT, grade INT)",
+                    correct: 3,
+                    type: "Базы данных"
                 },
                 {
-                    text: "Сколько планет в Солнечной системе?",
-                    correct: 8,
-                    subject: "География",
-                    category: "Астрономия"
-                }
-            ],
-            
-            9: [
-                // Для 9 класса  
-                {
-                    text: "Решите квадратное уравнение: x² - 5x + 6 = 0",
+                    text: "Сколько уникальных имен вернет запрос: SELECT DISTINCT name FROM users",
                     correct: 2,
-                    subject: "Математика",
-                    category: "Алгебра"
+                    type: "Базы данных"
+                },
+                
+                // 3. Сетевые технологии
+                {
+                    text: "Какой номер порта используется для HTTP протокола?",
+                    correct: 80,
+                    type: "Сети"
                 },
                 {
-                    text: "Площадь круга с радиусом 7 см (π≈3,14)",
-                    correct: 154,
-                    subject: "Математика",
-                    category: "Геометрия"
+                    text: "Сколько бит в IPv4 адресе?",
+                    correct: 32,
+                    type: "Сети"
                 },
                 {
-                    text: "Год отмены крепостного права в России:",
-                    correct: 1861,
-                    subject: "История",
-                    category: "Даты"
+                    text: "Какая маска подсети для класса C?",
+                    correct: 24,
+                    type: "Сети"
+                },
+                
+                // 4. Компьютерная графика
+                {
+                    text: "Сколько цветов можно закодировать 4 битами?",
+                    correct: 16,
+                    type: "Графика"
                 },
                 {
-                    text: "Атомный номер кислорода:",
+                    text: "Какой объем у изображения 800×600 пикселей с палитрой 256 цветов?",
+                    correct: 480000,
+                    type: "Графика"
+                },
+                {
+                    text: "Сколько бит на пиксель для изображения с 65536 цветами?",
+                    correct: 16,
+                    type: "Графика"
+                },
+                
+                // 5. Защита информации
+                {
+                    text: "Сколько символов должно быть в надежном пароле (минимум)?",
                     correct: 8,
-                    subject: "Химия",
-                    category: "Периодическая таблица"
+                    type: "Безопасность"
                 },
                 {
-                    text: "Количество хромосом у человека:",
-                    correct: 46,
-                    subject: "Биология",
-                    category: "Генетика"
-                }
-            ],
-            
-            10: [
-                // Для 10 класса
-                {
-                    text: "Найдите производную функции: f(x) = 3x² - 2x + 1",
-                    correct: 6,
-                    subject: "Математика",
-                    category: "Математический анализ"
+                    text: "Как часто рекомендуется менять пароли? (в днях)",
+                    correct: 90,
+                    type: "Безопасность"
                 },
                 {
-                    text: "Год начала Первой мировой войны:",
-                    correct: 1914,
-                    subject: "История",
-                    category: "Даты"
-                },
-                {
-                    text: "Молярная масса воды H₂O (г/моль):",
-                    correct: 18,
-                    subject: "Химия",
-                    category: "Расчеты"
-                },
-                {
-                    text: "Период колебаний маятника длиной 1м (π≈3,14, g≈10)",
-                    correct: 2,
-                    subject: "Физика",
-                    category: "Механика"
-                },
-                {
-                    text: "Сколько пар рёбер у человека?",
-                    correct: 12,
-                    subject: "Биология",
-                    category: "Анатомия"
+                    text: "Сколько бит в стандартном AES шифровании?",
+                    correct: 128,
+                    type: "Безопасность"
                 }
             ]
         };
         
-        // === АЛГОРИТМ ГЕНЕРАЦИИ НЕПРАВИЛЬНЫХ ОТВЕТОВ ===
-        function generateWrongAnswers(correctAnswer, count = 3) {
+        // === АЛГОРИТМ ГЕНЕРАЦИИ ВАРИАНТОВ ОТВЕТОВ ===
+        function generateWrongAnswers(correct, count = 3) {
             const wrongAnswers = [];
-            const usedNumbers = new Set([correctAnswer]);
+            const used = new Set([correct]);
             
-            // Определяем диапазон ±5 от правильного ответа
-            let minRange = correctAnswer - 5;
-            let maxRange = correctAnswer + 5;
+            // Определяем диапазон ±5
+            let min = correct - 5;
+            let max = correct + 5;
             
             // Корректируем для специальных случаев
-            if (correctAnswer <= 5) {
-                minRange = 1; // Не допускаем отрицательные или нулевые ответы
+            if (correct <= 5) {
+                min = Math.max(1, correct - 3);
+                max = correct + 3;
             }
             
-            if (correctAnswer < 10) {
-                // Для маленьких чисел делаем диапазон относительным
-                minRange = Math.max(1, correctAnswer - 3);
-                maxRange = correctAnswer + 3;
+            // Для больших чисел делаем диапазон относительным
+            if (correct > 100) {
+                const percent = Math.max(5, Math.floor(correct * 0.05)); // 5% от числа
+                min = correct - percent;
+                max = correct + percent;
+            }
+            
+            // Для очень больших чисел (например, 480000)
+            if (correct > 10000) {
+                const percent = Math.max(100, Math.floor(correct * 0.01)); // 1% от числа
+                min = correct - percent;
+                max = correct + percent;
             }
             
             let attempts = 0;
-            const maxAttempts = 50;
-            
-            while (wrongAnswers.length < count && attempts < maxAttempts) {
+            while (wrongAnswers.length < count && attempts < 50) {
                 attempts++;
+                let candidate;
                 
-                // Генерируем кандидата в диапазоне
-                let candidate = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+                // Сначала пытаемся в диапазоне ±5
+                candidate = Math.floor(Math.random() * (max - min + 1)) + min;
                 
-                // Исключаем правильный ответ
-                if (candidate === correctAnswer) {
-                    continue;
+                // Если кандидат слишком близок к правильному или уже использован
+                if (Math.abs(candidate - correct) < 2 || used.has(candidate) || candidate <= 0) {
+                    // Генерируем по-другому
+                    const offset = wrongAnswers.length * 7 + 3;
+                    candidate = correct + (Math.random() > 0.5 ? offset : -offset);
                 }
                 
-                // Проверяем уникальность
-                if (!usedNumbers.has(candidate)) {
+                // Убедимся, что число положительное и уникальное
+                if (candidate > 0 && !used.has(candidate) && candidate !== correct) {
                     wrongAnswers.push(candidate);
-                    usedNumbers.add(candidate);
-                }
-                
-                // Если застряли, расширяем диапазон
-                if (attempts % 10 === 0) {
-                    minRange--;
-                    maxRange++;
+                    used.add(candidate);
                 }
             }
             
-            // Если не удалось сгенерировать достаточно вариантов
+            // Если не хватило вариантов, добавляем гарантированно разные
             while (wrongAnswers.length < count) {
-                let candidate = correctAnswer + (wrongAnswers.length + 1) * 10;
-                if (!usedNumbers.has(candidate)) {
+                const offset = (wrongAnswers.length + 1) * 10;
+                let candidate = correct + offset;
+                if (!used.has(candidate)) {
                     wrongAnswers.push(candidate);
-                    usedNumbers.add(candidate);
+                    used.add(candidate);
                 }
             }
             
             return wrongAnswers;
         }
         
-        // === ФУНКЦИИ ТЕСТИРОВАНИЯ ===
-        function selectGrade(grade) {
+        // === ВЫБОР КЛАССА ===
+        function selectClass(grade) {
             currentGrade = grade;
-            startTest();
+            
+            // Снимаем выделение со всех кнопок
+            document.querySelectorAll('.class-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // Выделяем выбранную кнопку
+            event.target.classList.add('selected');
+            
+            // Показываем информацию о классе
+            document.getElementById('class7info').style.display = grade === 7 ? 'block' : 'none';
+            document.getElementById('class8info').style.display = grade === 8 ? 'block' : 'none';
+            
+            // Показываем кнопку активации
+            document.getElementById('activateBtnContainer').style.display = 'block';
         }
         
-        function startTest() {
-            // Получаем вопросы для выбранного класса
+        // === НАЧАЛО ИГРЫ ===
+        function startGame() {
+            if (!currentGrade) {
+                alert('Сначала выберите класс!');
+                return;
+            }
+            
+            // Генерируем тест для выбранного класса
             const allQuestions = QUESTION_BANK[currentGrade];
             
-            // Выбираем случайные вопросы
+            // Выбираем 15 случайных вопросов
             const selectedQuestions = [];
             const shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
             
-            for (let i = 0; i < CONFIG.questionsPerTest && i < shuffled.length; i++) {
+            for (let i = 0; i < 15 && i < shuffled.length; i++) {
                 const question = shuffled[i];
                 
-                // Генерируем варианты ответов
+                // Генерируем неправильные ответы
                 const wrongAnswers = generateWrongAnswers(question.correct, 3);
                 const allAnswers = [...wrongAnswers, question.correct];
                 
-                // Перемешиваем варианты
+                // Перемешиваем
                 for (let j = allAnswers.length - 1; j > 0; j--) {
                     const k = Math.floor(Math.random() * (j + 1));
                     [allAnswers[j], allAnswers[k]] = [allAnswers[k], allAnswers[j]];
@@ -652,75 +832,55 @@
                 });
             }
             
-            currentTest = selectedQuestions;
+            currentGame = selectedQuestions;
             userAnswers = new Array(selectedQuestions.length).fill(-1);
             currentQuestionIndex = 0;
-            timeLeft = CONFIG.timeLimit;
             
-            // Показываем экран теста
-            document.getElementById('gradeSelectScreen').classList.remove('active');
-            document.getElementById('testScreen').classList.add('active');
+            // Генерируем пароли
+            correctPassword = selectedQuestions.map(q => q.correctIndex + 1).join('');
             
-            // Обновляем информацию
-            document.getElementById('subjectInfo').textContent = `Класс: ${currentGrade} | Предметы: Математика, Русский язык, Обществознание`;
+            // Генерируем случайный код разблокировки
+            unlockPassword = Array.from({length: 8}, () => 
+                Math.floor(Math.random() * 10)).join('');
             
-            // Запускаем таймер
-            startTimer();
+            console.log("=== ДЕБАГ ИНФОРМАЦИЯ ===");
+            console.log("Класс:", currentGrade);
+            console.log("Пароль для прохождения:", correctPassword);
+            console.log("Код разблокировки:", unlockPassword);
+            console.log("======================");
             
-            // Показываем первый вопрос
+            // Переключаем экран
+            gameState = "questions";
+            document.getElementById('classSelectScreen').style.display = 'none';
+            document.getElementById('questionScreen').style.display = 'flex';
+            document.getElementById('statusBar').style.display = 'block';
+            
             updateQuestion();
             updateQuestionList();
             updateProgress();
         }
         
-        function startTimer() {
-            if (timerInterval) clearInterval(timerInterval);
-            
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                
-                const minutes = Math.floor(timeLeft / 60);
-                const seconds = timeLeft % 60;
-                document.getElementById('timer').textContent = 
-                    `Время: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    finishTest();
-                }
-            }, 1000);
-        }
-        
+        // === ОБНОВЛЕНИЕ ВОПРОСА ===
         function updateQuestion() {
-            if (!currentTest || currentQuestionIndex >= currentTest.length) return;
+            if (!currentGame || currentQuestionIndex >= currentGame.length) return;
             
-            const question = currentTest[currentQuestionIndex];
+            const q = currentGame[currentQuestionIndex];
+            document.getElementById('questionNumber').textContent = `Вопрос ${currentQuestionIndex + 1} из 15`;
+            document.getElementById('questionType').textContent = `Тема: ${q.type}`;
+            document.getElementById('questionText').textContent = q.text;
             
-            // Обновляем текст вопроса
-            document.getElementById('questionText').textContent = question.text;
-            document.getElementById('questionCounter').textContent = 
-                `Вопрос ${currentQuestionIndex + 1} из ${currentTest.length}`;
+            document.getElementById('prevBtn').style.visibility = currentQuestionIndex > 0 ? 'visible' : 'hidden';
+            document.getElementById('nextBtn').textContent = currentQuestionIndex < 14 ? 'ДАЛЕЕ →' : 'К ПАРОЛЮ →';
             
-            // Обновляем кнопки навигации
-            document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
-            document.getElementById('nextBtn').textContent = 
-                currentQuestionIndex < currentTest.length - 1 ? 'Далее →' : 'Завершить тест';
-            
-            // Очищаем и заполняем варианты ответов
             const optionsDiv = document.getElementById('options');
             optionsDiv.innerHTML = '';
             
-            question.options.forEach((option, index) => {
-                const optionDiv = document.createElement('div');
-                optionDiv.className = `option ${userAnswers[currentQuestionIndex] === index ? 'selected' : ''}`;
-                
-                optionDiv.innerHTML = `
-                    <div class="option-number">${index + 1}</div>
-                    <div class="option-text">${option}</div>
-                `;
-                
-                optionDiv.onclick = () => selectOption(index);
-                optionsDiv.appendChild(optionDiv);
+            q.options.forEach((option, index) => {
+                const div = document.createElement('div');
+                div.className = `option ${userAnswers[currentQuestionIndex] === index ? 'selected' : ''}`;
+                div.textContent = `${index + 1}. ${option}`;
+                div.onclick = () => selectOption(index);
+                optionsDiv.appendChild(div);
             });
         }
         
@@ -740,105 +900,338 @@
         }
         
         function nextQuestion() {
-            if (currentQuestionIndex < currentTest.length - 1) {
+            if (currentQuestionIndex < 14) {
                 currentQuestionIndex++;
                 updateQuestion();
                 updateQuestionList();
             } else {
-                finishTest();
+                showPasswordScreen();
             }
         }
         
         function updateQuestionList() {
             const listDiv = document.getElementById('questionList');
-            listDiv.innerHTML = '';
+            listDiv.innerHTML = '<div style="color: #0f0; margin-bottom: 10px; font-weight: bold;">ВОПРОСЫ:</div>';
             
-            for (let i = 0; i < currentTest.length; i++) {
-                const btn = document.createElement('button');
-                btn.className = 'question-list-btn';
+            for (let i = 0; i < 15; i++) {
+                const div = document.createElement('div');
+                div.className = 'question-item';
                 
-                if (i === currentQuestionIndex) {
-                    btn.classList.add('current');
-                }
+                if (i === currentQuestionIndex) div.classList.add('current');
+                if (userAnswers[i] !== -1) div.classList.add('answered');
                 
-                if (userAnswers[i] !== -1) {
-                    btn.classList.add('answered');
-                }
+                div.textContent = `${i + 1}. ${currentGame[i].type.substring(0, 8)}` + 
+                                (userAnswers[i] !== -1 ? ` [${userAnswers[i] + 1}]` : '');
                 
-                btn.textContent = i + 1;
-                btn.onclick = () => {
+                div.onclick = () => {
                     currentQuestionIndex = i;
                     updateQuestion();
                     updateQuestionList();
                 };
                 
-                listDiv.appendChild(btn);
+                listDiv.appendChild(div);
             }
         }
         
         function updateProgress() {
-            const progress = ((currentQuestionIndex + 1) / currentTest.length) * 100;
-            document.getElementById('progressFill').style.width = `${progress}%`;
+            const answered = userAnswers.filter(a => a !== -1).length;
+            document.getElementById('progressText').textContent = `Ответов: ${answered}/15`;
         }
         
-        function finishTest() {
-            clearInterval(timerInterval);
+        // === ЭКРАН ПАРОЛЯ ===
+        function showPasswordScreen() {
+            gameState = "password";
+            document.getElementById('questionScreen').style.display = 'none';
+            document.getElementById('passwordScreen').style.display = 'flex';
+            userPassword = "";
+            updatePasswordDisplay();
+            createKeypad();
+        }
+        
+        function updatePasswordDisplay() {
+            let display = userPassword;
+            while (display.length < 15) display += '_';
             
-            // Подсчитываем результаты
-            let correctCount = 0;
-            for (let i = 0; i < currentTest.length; i++) {
-                if (userAnswers[i] === currentTest[i].correctIndex) {
-                    correctCount++;
+            let formatted = '';
+            for (let i = 0; i < display.length; i++) {
+                formatted += display[i];
+                if ((i + 1) % 5 === 0 && i < 14) formatted += ' ';
+            }
+            
+            document.getElementById('passwordDisplay').textContent = formatted;
+        }
+        
+        function createKeypad() {
+            const keypad = document.getElementById('keypad');
+            keypad.innerHTML = '';
+            
+            for (let i = 1; i <= 9; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'keypad-btn';
+                btn.textContent = i;
+                btn.onclick = () => addToPassword(i.toString());
+                keypad.appendChild(btn);
+            }
+            
+            const zeroBtn = document.createElement('button');
+            zeroBtn.className = 'keypad-btn';
+            zeroBtn.textContent = '0';
+            zeroBtn.onclick = () => addToPassword('0');
+            keypad.appendChild(zeroBtn);
+            
+            const delBtn = document.createElement('button');
+            delBtn.className = 'keypad-btn btn-red';
+            delBtn.textContent = '⌫';
+            delBtn.onclick = () => {
+                userPassword = userPassword.slice(0, -1);
+                updatePasswordDisplay();
+            };
+            keypad.appendChild(delBtn);
+        }
+        
+        function addToPassword(digit) {
+            if (userPassword.length < 15) {
+                userPassword += digit;
+                updatePasswordDisplay();
+            }
+        }
+        
+        function checkPassword() {
+            if (userPassword.length !== 15) {
+                alert('Пароль должен содержать ровно 15 цифр!');
+                return;
+            }
+            
+            if (userPassword === correctPassword) {
+                gameState = "congrats";
+                document.getElementById('passwordScreen').style.display = 'none';
+                document.getElementById('congratsScreen').style.display = 'flex';
+                isLocked = false;
+            } else {
+                alert('НЕВЕРНЫЙ ПАРОЛЬ!\nДоступ запрещён.\nПароль сброшен.');
+                userPassword = '';
+                updatePasswordDisplay();
+            }
+        }
+        
+        function backToQuestions() {
+            gameState = "questions";
+            document.getElementById('passwordScreen').style.display = 'none';
+            document.getElementById('questionScreen').style.display = 'flex';
+            currentQuestionIndex = 14;
+            updateQuestion();
+            updateQuestionList();
+        }
+        
+        // === БЛОКИРОВКА ВЫХОДА ===
+        window.addEventListener('beforeunload', function(e) {
+            if (gameState !== "congrats" && isLocked) {
+                e.preventDefault();
+                e.returnValue = '';
+                triggerCloseAttempt();
+                return '';
+            }
+        });
+        
+        function triggerCloseAttempt() {
+            closeAttempts++;
+            document.getElementById('closeAttempts').textContent = closeAttempts;
+            document.getElementById('blocker').style.display = 'flex';
+            
+            setTimeout(() => {
+                document.getElementById('blocker').style.display = 'none';
+            }, 3000);
+            
+            if (closeAttempts >= 3) {
+                triggerLockdown();
+            }
+        }
+        
+        function triggerLockdown() {
+            gameState = "lockdown";
+            showScreen('lockdownScreen');
+            document.getElementById('statusBar').style.display = 'none';
+            isLocked = true;
+            lockdownPassword = "";
+            updateLockdownDisplay();
+            setupLockdownKeypad();
+        }
+        
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.style.display = 'none';
+            });
+            document.getElementById(screenId).style.display = 'flex';
+        }
+        
+        function setupLockdownKeypad() {
+            const keypad = document.getElementById('lockdownKeypad');
+            keypad.innerHTML = '';
+            
+            for (let i = 1; i <= 9; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'keypad-btn';
+                btn.style.backgroundColor = '#000';
+                btn.style.color = '#fff';
+                btn.style.borderColor = '#fff';
+                btn.textContent = i;
+                btn.onclick = () => addToLockdownPassword(i.toString());
+                keypad.appendChild(btn);
+            }
+            
+            const zeroBtn = document.createElement('button');
+            zeroBtn.className = 'keypad-btn';
+            zeroBtn.style.backgroundColor = '#000';
+            zeroBtn.style.color = '#fff';
+            zeroBtn.style.borderColor = '#fff';
+            zeroBtn.textContent = '0';
+            zeroBtn.onclick = () => addToLockdownPassword('0');
+            keypad.appendChild(zeroBtn);
+            
+            const delBtn = document.createElement('button');
+            delBtn.className = 'keypad-btn';
+            delBtn.style.backgroundColor = '#000';
+            delBtn.style.color = '#fff';
+            delBtn.style.borderColor = '#fff';
+            delBtn.textContent = '⌫';
+            delBtn.onclick = () => {
+                lockdownPassword = lockdownPassword.slice(0, -1);
+                updateLockdownDisplay();
+            };
+            keypad.appendChild(delBtn);
+        }
+        
+        function addToLockdownPassword(digit) {
+            if (lockdownPassword.length < 8) {
+                lockdownPassword += digit;
+                updateLockdownDisplay();
+            }
+        }
+        
+        function updateLockdownDisplay() {
+            let display = '';
+            for (let i = 0; i < 8; i++) {
+                display += i < lockdownPassword.length ? '*' : '_';
+            }
+            document.getElementById('lockdownDisplay').textContent = display;
+            
+            if (lockdownAttempts > 0) {
+                document.getElementById('lockdownMessage').innerHTML = 
+                    `Неверный пароль. Попыток: ${lockdownAttempts}/3`;
+            }
+        }
+        
+        function checkLockdownPassword() {
+            if (lockdownPassword === unlockPassword) {
+                lockdownPassword = "";
+                lockdownAttempts = 0;
+                isLocked = false;
+                
+                if (gameState === "lockdown") {
+                    gameState = "questions";
+                    showScreen('questionScreen');
+                    document.getElementById('statusBar').style.display = 'block';
+                    updateQuestion();
+                    updateQuestionList();
+                }
+            } else {
+                lockdownAttempts++;
+                lockdownPassword = "";
+                updateLockdownDisplay();
+                
+                if (lockdownAttempts >= 3) {
+                    document.getElementById('lockdownMessage').innerHTML = 
+                        'СИСТЕМА ОКОНЧАТЕЛЬНО ЗАБЛОКИРОВАНА<br>Перезагрузите страницу';
+                    document.getElementById('lockdownKeypad').innerHTML = '';
+                    document.querySelector('#lockdownScreen button').style.display = 'none';
                 }
             }
-            
-            // Вычисляем оценку
-            const percentage = (correctCount / currentTest.length) * 100;
-            let grade;
-            let gradeText;
-            
-            if (percentage >= 85) {
-                grade = 5;
-                gradeText = "Отлично!";
-            } else if (percentage >= 70) {
-                grade = 4;
-                gradeText = "Хорошо";
-            } else if (percentage >= 50) {
-                grade = 3;
-                gradeText = "Удовлетворительно";
-            } else {
-                grade = 2;
-                gradeText = "Неудовлетворительно";
-            }
-            
-            // Форматируем затраченное время
-            const timeSpent = CONFIG.timeLimit - timeLeft;
-            const minutesSpent = Math.floor(timeSpent / 60);
-            const secondsSpent = timeSpent % 60;
-            const timeString = `${minutesSpent.toString().padStart(2, '0')}:${secondsSpent.toString().padStart(2, '0')}`;
-            
-            // Показываем результаты
-            document.getElementById('testScreen').classList.remove('active');
-            document.getElementById('resultsScreen').classList.add('active');
-            
-            document.getElementById('finalGrade').textContent = grade;
-            document.getElementById('resultText').textContent = gradeText;
-            document.getElementById('resultDetails').textContent = 
-                `Вы ответили правильно на ${correctCount} из ${currentTest.length} вопросов`;
-            document.getElementById('timeSpent').textContent = timeString;
         }
         
-        function restartTest() {
-            document.getElementById('resultsScreen').classList.remove('active');
-            document.getElementById('gradeSelectScreen').classList.add('active');
-            currentGrade = null;
-            currentTest = null;
+        function exitGame() {
+            if (gameState === "congrats") {
+                alert('SYSTEM_BREACH завершён. Окно закроется через 3 секунды...');
+                document.body.style.opacity = '0';
+                document.body.style.transition = 'opacity 3s';
+                
+                setTimeout(() => {
+                    window.close();
+                }, 3000);
+            }
+        }
+        
+        // === МАТРИЧНЫЙ ЭФФЕКТ ===
+        function initMatrix() {
+            const matrixDiv = document.getElementById('matrix');
+            const chars = "01█▓▒░╬╣║╗╝╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌┐└┴┬├┼╞╟╚╔╩╦╠═╬░▒▓█";
+            const matrixElements = [];
+            
+            for (let i = 0; i < 80; i++) {
+                const char = document.createElement('div');
+                char.className = 'char';
+                char.textContent = chars[Math.floor(Math.random() * chars.length)];
+                char.style.left = Math.random() * 100 + 'vw';
+                char.style.top = Math.random() * 100 + 'vh';
+                char.style.opacity = Math.random() * 0.5 + 0.2;
+                matrixDiv.appendChild(char);
+                matrixElements.push({
+                    element: char,
+                    speed: Math.random() * 2 + 0.5,
+                    resetPos: Math.random() * -200 - 100
+                });
+            }
+            
+            setInterval(() => {
+                matrixElements.forEach(item => {
+                    let top = parseFloat(item.element.style.top);
+                    top += item.speed;
+                    
+                    if (top > 100) {
+                        top = item.resetPos;
+                        item.element.style.left = Math.random() * 100 + 'vw';
+                        item.element.textContent = chars[Math.floor(Math.random() * chars.length)];
+                        item.element.style.opacity = Math.random() * 0.5 + 0.2;
+                    }
+                    
+                    item.element.style.top = top + 'vh';
+                    
+                    // Плавное появление и исчезновение
+                    if (top < 10) {
+                        item.element.style.opacity = top / 10;
+                    } else if (top > 90) {
+                        item.element.style.opacity = (100 - top) / 10;
+                    }
+                });
+            }, 50);
+        }
+        
+        // === БЛОКИРОВКА КЛАВИШ ===
+        function initBlockers() {
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'F4' && e.altKey || e.key === 'Escape' || 
+                    (e.altKey && e.key === 'Tab') || (e.ctrlKey && e.key === 'w')) {
+                    e.preventDefault();
+                    triggerCloseAttempt();
+                }
+            });
+            
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                if (gameState !== "classSelect") {
+                    triggerLockdown();
+                }
+            });
         }
         
         // === ИНИЦИАЛИЗАЦИЯ ===
         window.onload = function() {
-            console.log("Тестирование ВПР загружено");
-            console.log("Вопросы взяты из открытого банка ФИПИ");
+            initMatrix();
+            initBlockers();
+            
+            console.log("=== SYSTEM_BREACH.exe ===");
+            console.log("Хакерское тестирование по информатике");
+            console.log("Вопросы из банка ФИПИ ВПР 7-8 класс");
+            console.log("==============================");
         };
     </script>
 </body>
