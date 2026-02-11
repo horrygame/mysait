@@ -438,10 +438,6 @@
 
     <script>
         // === БЕЗОПАСНОЕ ХРАНЕНИЕ ПАРОЛЯ ===
-        // Пароль генерируется при запуске и хранится в зашифрованном виде
-        // F12 не поможет - нельзя просто посмотреть код
-        
-        // === ГЕНЕРАТОР СЛУЧАЙНЫХ ВОПРОСОВ ===
         let currentGame = null;
         let userAnswers = Array(17).fill(-1);
         
@@ -586,9 +582,18 @@
                         break;
                     case 4:
                         formula = `В классе ${total} учеников. Все посещают хотя бы один кружок: ${setA} - математический, ${setB} - биологический, ${both} - оба. Сколько посещают только один кружок?`;
-                        correct = setA + setB - 2*both;
+                        const correctSingle = setA + setB - 2*both;
                         wrong = [total-both, setA+setB-both, total-both*2, Math.abs(setA-setB)];
-                        break;
+                        const optionsSingle = [...wrong];
+                        const correctIndexSingle = rng(0, 3);
+                        optionsSingle[correctIndexSingle] = correctSingle;
+                        questions.push({
+                            text: formula,
+                            options: shuffle(optionsSingle.map(o => o.toString())),
+                            type: "Круги Эйлера"
+                        });
+                        correctAnswers.push(correctIndexSingle);
+                        continue;
                     case 5:
                         formula = `В школе ${total} учеников. ${setA} любят математику, ${setB} - физику, ${both} - обе науки. Сколько учеников не любят ни математику, ни физику?`;
                         wrong = [setA+setB-both, total-both, setA+setB-2*both, Math.abs(setA-setB)];
@@ -676,24 +681,18 @@
             const password = correctAnswers.map(a => a + 1).join('');
             const unlockCode = Array.from({length: 8}, () => rng(0, 9)).join('');
             
-            // Шифруем пароль (простая обфускация)
-            const encryptedPassword = btoa(password + '|' + unlockCode + '|' + seed)
-                .split('').reverse().join('')
-                .replace(/=/g, 'x');
-            
             return {
                 questions,
                 correctAnswers,
                 password,
                 unlockCode,
-                encryptedPassword,
                 seed
             };
         }
         
         // === ОСНОВНАЯ ИГРА ===
         let gameState = "welcome";
-        let currentQuestion = 0;
+        let currentQuestionIndex = 0;
         let userPassword = "";
         let lockdownPassword = "";
         let lockdownAttempts = 0;
@@ -707,15 +706,13 @@
             correctPassword = currentGame.password;
             unlockPassword = currentGame.unlockCode;
             
-            // Для отладки (можно удалить в финальной версии)
             console.log("=== ИНФОРМАЦИЯ ДЛЯ ПРОВЕРКИ ===");
             console.log("Пароль для прохождения:", correctPassword);
             console.log("Пароль разблокировки:", unlockPassword);
-            console.log("Зашифрованные данные:", currentGame.encryptedPassword);
             console.log("==============================");
             
             gameState = "questions";
-            currentQuestion = 0;
+            currentQuestionIndex = 0;
             userAnswers = Array(17).fill(-1);
             showScreen('questionScreen');
             document.getElementById('statusBar').style.display = 'block';
@@ -738,22 +735,22 @@
         }
         
         function updateQuestion() {
-            if(!currentGame || currentQuestion >= 17) return;
+            if(!currentGame || currentQuestionIndex >= 17) return;
             
-            const q = currentGame.questions[currentQuestion];
-            document.getElementById('questionNumber').textContent = `Вопрос ${currentQuestion + 1} из 17`;
+            const q = currentGame.questions[currentQuestionIndex];
+            document.getElementById('questionNumber').textContent = `Вопрос ${currentQuestionIndex + 1} из 17`;
             document.getElementById('questionType').textContent = `Тема: ${q.type}`;
             document.getElementById('questionText').textContent = q.text;
             
-            document.getElementById('prevBtn').style.visibility = currentQuestion > 0 ? 'visible' : 'hidden';
-            document.getElementById('nextBtn').textContent = currentQuestion < 16 ? 'ДАЛЕЕ →' : 'К ПАРОЛЮ →';
+            document.getElementById('prevBtn').style.visibility = currentQuestionIndex > 0 ? 'visible' : 'hidden';
+            document.getElementById('nextBtn').textContent = currentQuestionIndex < 16 ? 'ДАЛЕЕ →' : 'К ПАРОЛЮ →';
             
             const optionsDiv = document.getElementById('options');
             optionsDiv.innerHTML = '';
             
             q.options.forEach((option, index) => {
                 const div = document.createElement('div');
-                div.className = `option ${userAnswers[currentQuestion] === index ? 'selected' : ''}`;
+                div.className = `option ${userAnswers[currentQuestionIndex] === index ? 'selected' : ''}`;
                 div.textContent = `${index + 1}. ${option}`;
                 div.onclick = () => selectOption(index);
                 optionsDiv.appendChild(div);
@@ -761,26 +758,26 @@
         }
         
         function selectOption(index) {
-            userAnswers[currentQuestion] = index;
+            userAnswers[currentQuestionIndex] = index;
             updateQuestion();
             updateQuestionList();
             updateProgress();
         }
         
         function prevQuestion() {
-            if(currentQuestion > 0) {
-                currentQuestion--;
+            if(currentQuestionIndex > 0) {
+                currentQuestionIndex--;
                 updateQuestion();
                 updateQuestionList();
             }
         }
         
         function nextQuestion() {
-            if(currentQuestion < 16) {
-                currentQuestion++;
+            if(currentQuestionIndex < 16) {
+                currentQuestionIndex++;
                 updateQuestion();
                 updateQuestionList();
-            } else if(currentQuestion === 16) {
+            } else if(currentQuestionIndex === 16) {
                 showPasswordScreen();
             }
         }
@@ -793,7 +790,7 @@
                 const div = document.createElement('div');
                 div.className = 'question-item';
                 
-                if(i === currentQuestion) div.classList.add('current');
+                if(i === currentQuestionIndex) div.classList.add('current');
                 if(userAnswers[i] !== -1) div.classList.add('answered');
                 
                 if(i < 16) {
@@ -806,7 +803,7 @@
                 
                 div.onclick = () => {
                     if(i < 16) {
-                        currentQuestion = i;
+                        currentQuestionIndex = i;
                         updateQuestion();
                         updateQuestionList();
                     } else {
@@ -826,7 +823,7 @@
         // === ПАРОЛЬ ===
         function showPasswordScreen() {
             gameState = "password";
-            currentQuestion = 16;
+            currentQuestionIndex = 16;
             showScreen('passwordScreen');
             userPassword = "";
             updatePasswordDisplay();
@@ -900,7 +897,7 @@
         
         function backToQuestions() {
             gameState = "questions";
-            currentQuestion = 15;
+            currentQuestionIndex = 15;
             showScreen('questionScreen');
             updateQuestion();
             updateQuestionList();
@@ -1085,8 +1082,8 @@
             });
             
             console.log("=== SYSTEM_BREACH.exe ===");
-            console.log("Игра загружена. Пароль генерируется случайно при каждом запуске.");
-            console.log("F12 не поможет - данные защищены.");
+            console.log("Игра загружена. Нажмите 'АКТИВИРОВАТЬ СИСТЕМУ' для начала.");
+            console.log("Пароль будет показан в консоли после запуска.");
             console.log("========================");
         };
     </script>
