@@ -437,116 +437,111 @@
     </div>
 
     <script>
-        // === БЕЗОПАСНОЕ ХРАНЕНИЕ ПАРОЛЯ ===
+        // === ГЕНЕРАТОР ВОПРОСОВ БЕЗ ПОВТОРЕНИЙ ===
         let currentGame = null;
         let userAnswers = Array(17).fill(-1);
         
-        function generateGame() {
-            const seed = Date.now() + Math.random();
-            const rng = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-            const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
+        function generateUniqueOptions(correctValue, isNumeric = true) {
+            const options = new Set();
+            options.add(correctValue);
             
+            while(options.size < 4) {
+                let option;
+                if(isNumeric) {
+                    const delta = Math.floor(Math.random() * 5) + 1;
+                    const sign = Math.random() > 0.5 ? 1 : -1;
+                    option = correctValue + (delta * sign);
+                    if(option < 0) option = correctValue + delta;
+                } else {
+                    // Для текстовых вариантов
+                    const fakeBases = ["двоичной", "троичной", "пятеричной", "семеричной", 
+                                      "девятеричной", "одиннадцатеричной", "тринадцатеричной"];
+                    option = fakeBases[Math.floor(Math.random() * fakeBases.length)];
+                }
+                options.add(option);
+            }
+            
+            // Преобразуем в массив и перемешиваем
+            const optionsArray = Array.from(options);
+            for(let i = optionsArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [optionsArray[i], optionsArray[j]] = [optionsArray[j], optionsArray[i]];
+            }
+            
+            const correctIndex = optionsArray.indexOf(correctValue);
+            
+            return {
+                options: isNumeric ? optionsArray.map(o => o.toString()) : optionsArray,
+                correctIndex: correctIndex
+            };
+        }
+        
+        function generateGame() {
             const questions = [];
             const correctAnswers = [];
+            const rng = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
             
             // 1. Системы счисления (6 вопросов)
-            // Вопрос 1: Двоичное в десятичное
-            {
-                const num = rng(32, 63);
-                const correct = parseInt(num.toString(2), 2);
-                const options = [correct-2, correct-1, correct+1, correct+2];
-                const correctIndex = rng(0, 3);
-                options[correctIndex] = correct;
+            for(let i = 0; i < 6; i++) {
+                let text, result, isNumeric, correctValue;
+                
+                switch(i) {
+                    case 0:
+                        const num1 = rng(32, 63);
+                        const binary1 = num1.toString(2);
+                        correctValue = parseInt(binary1, 2);
+                        text = `Переведите двоичное число ${binary1} в десятичную систему.`;
+                        isNumeric = true;
+                        break;
+                        
+                    case 1:
+                        const base = rng(5, 8);
+                        const a = rng(5, 12);
+                        const b = rng(5, 12);
+                        const sum = a + b;
+                        const sumStr = sum.toString(base);
+                        correctValue = `${base}-ичной`;
+                        text = `В какой системе счисления выполняется равенство ${a} + ${b} = ${sumStr}?`;
+                        isNumeric = false;
+                        break;
+                        
+                    case 2:
+                        const num2 = rng(60, 100);
+                        correctValue = num2.toString(2).split('1').length - 1;
+                        text = `Сколько единиц в двоичной записи числа ${num2}?`;
+                        isNumeric = true;
+                        break;
+                        
+                    case 3:
+                        const a3 = rng(5, 10);
+                        const b3 = rng(5, 10);
+                        const sum3 = a3 + b3;
+                        correctValue = sum3.toString(2);
+                        text = `Чему равна сумма чисел ${a3.toString(2)}₂ и ${b3.toString(2)}₂ в двоичной системе?`;
+                        isNumeric = false;
+                        break;
+                        
+                    case 4:
+                        const num4 = rng(50, 150);
+                        correctValue = num4.toString(8);
+                        text = `Переведите десятичное число ${num4} в восьмеричную систему.`;
+                        isNumeric = false;
+                        break;
+                        
+                    case 5:
+                        const hexNum = rng(160, 250);
+                        const hexStr = hexNum.toString(16).toUpperCase();
+                        correctValue = hexNum;
+                        text = `Переведите шестнадцатеричное число ${hexStr} в десятичную систему.`;
+                        isNumeric = true;
+                        break;
+                }
+                
+                const {options, correctIndex} = generateUniqueOptions(correctValue, isNumeric);
+                
                 questions.push({
-                    text: `Переведите двоичное число ${num.toString(2)} в десятичную систему.`,
-                    options: shuffle(options.map(o => o.toString())),
-                    type: "Системы счисления"
-                });
-                correctAnswers.push(correctIndex);
-            }
-            
-            // Вопрос 2: Система счисления равенства
-            {
-                const base = rng(5, 8);
-                const a = rng(5, 12);
-                const b = rng(5, 12);
-                const sum = a + b;
-                const sumStr = sum.toString(base);
-                const bases = ["двоичной", "восьмеричной", "шестнадцатеричной", `${base}-ичной`];
-                questions.push({
-                    text: `В какой системе счисления выполняется равенство ${a} + ${b} = ${sumStr}?`,
-                    options: shuffle([...bases]),
-                    type: "Системы счисления"
-                });
-                correctAnswers.push(bases.indexOf(`${base}-ичной`));
-            }
-            
-            // Вопрос 3: Единицы в двоичной записи
-            {
-                const num = rng(60, 100);
-                const ones = num.toString(2).split('1').length - 1;
-                const options = [ones-2, ones-1, ones+1, ones+2].filter(o => o > 0);
-                while(options.length < 4) options.push(rng(1, 8));
-                const correctIndex = rng(0, 3);
-                options[correctIndex] = ones;
-                questions.push({
-                    text: `Сколько единиц в двоичной записи числа ${num}?`,
-                    options: shuffle(options.map(o => o.toString())),
-                    type: "Системы счисления"
-                });
-                correctAnswers.push(options.indexOf(ones));
-            }
-            
-            // Вопрос 4: Сумма двоичных чисел
-            {
-                const a = rng(5, 10);
-                const b = rng(5, 10);
-                const sum = a + b;
-                const correct = sum.toString(2);
-                const wrong1 = (sum-1).toString(2);
-                const wrong2 = (sum+1).toString(2);
-                const wrong3 = (a+b+2).toString(2);
-                const options = [wrong1, wrong2, wrong3, correct];
-                const correctIndex = rng(0, 3);
-                [options[correctIndex], options[3]] = [options[3], options[correctIndex]];
-                questions.push({
-                    text: `Чему равна сумма чисел ${a.toString(2)}₂ и ${b.toString(2)}₂ в двоичной системе?`,
-                    options: shuffle(options),
-                    type: "Системы счисления"
-                });
-                correctAnswers.push(options.indexOf(correct));
-            }
-            
-            // Вопрос 5: Десятичное в восьмеричное
-            {
-                const num = rng(50, 150);
-                const correct = num.toString(8);
-                const options = [
-                    (num-2).toString(8),
-                    (num-1).toString(8),
-                    (num+1).toString(8),
-                    (num+2).toString(8)
-                ];
-                const correctIndex = rng(0, 3);
-                options[correctIndex] = correct;
-                questions.push({
-                    text: `Переведите десятичное число ${num} в восьмеричную систему.`,
-                    options: shuffle(options),
-                    type: "Системы счисления"
-                });
-                correctAnswers.push(correctIndex);
-            }
-            
-            // Вопрос 6: Шестнадцатеричное в десятичное
-            {
-                const hex = rng(160, 250).toString(16).toUpperCase();
-                const correct = parseInt(hex, 16);
-                const options = [correct-3, correct-1, correct+1, correct+3];
-                const correctIndex = rng(0, 3);
-                options[correctIndex] = correct;
-                questions.push({
-                    text: `Переведите шестнадцатеричное число ${hex} в десятичную систему.`,
-                    options: shuffle(options.map(o => o.toString())),
+                    text: text,
+                    options: options,
                     type: "Системы счисления"
                 });
                 correctAnswers.push(correctIndex);
@@ -555,98 +550,121 @@
             // 2. Круги Эйлера (6 вопросов)
             for(let i = 0; i < 6; i++) {
                 const total = rng(30, 50);
-                const setA = rng(15, total-10);
-                const setB = rng(10, total-15);
+                const setA = rng(15, total - 10);
+                const setB = rng(10, total - 15);
                 const both = rng(5, Math.min(setA, setB));
-                const correct = total - setA - setB + both;
                 
-                let formula = "";
-                let wrong = [];
+                let formula, correct;
                 
                 switch(i % 6) {
                     case 0:
                         formula = `${total} человек. ${setA} занимаются спортом, ${setB} - музыкой, ${both} - и тем и другим. Сколько человек ничем не занимаются?`;
-                        wrong = [total-setA-setB, setA+setB, total-both, setA+setB-2*both];
+                        correct = total - setA - setB + both;
                         break;
                     case 1:
                         formula = `Из ${total} туристов ${setA} знают английский, ${setB} - французский, ${both} - оба языка. Сколько туристов не знают ни одного языка?`;
-                        wrong = [setA+setB-both, total-both, setA+setB-2*both, total-setA-setB];
+                        correct = total - setA - setB + both;
                         break;
                     case 2:
                         formula = `В группе ${total} студентов. ${setA} сдают математику, ${setB} - физику, ${both} - оба экзамена. Сколько студентов не сдают эти экзамены?`;
-                        wrong = [setA+setB-both, total-both, setA+setB-2*both, Math.abs(total-setA-setB)];
+                        correct = total - setA - setB + both;
                         break;
                     case 3:
                         formula = `На предприятии ${total} работников. ${setA} умеют работать на станке А, ${setB} - на станке Б, ${both} - на обоих. Сколько не умеют работать ни на одном станке?`;
-                        wrong = [setA+setB-both, total-both, setA+setB-2*both, Math.abs(setA-setB)];
+                        correct = total - setA - setB + both;
                         break;
                     case 4:
                         formula = `В классе ${total} учеников. Все посещают хотя бы один кружок: ${setA} - математический, ${setB} - биологический, ${both} - оба. Сколько посещают только один кружок?`;
-                        const correctSingle = setA + setB - 2*both;
-                        wrong = [total-both, setA+setB-both, total-both*2, Math.abs(setA-setB)];
-                        const optionsSingle = [...wrong];
-                        const correctIndexSingle = rng(0, 3);
-                        optionsSingle[correctIndexSingle] = correctSingle;
-                        questions.push({
-                            text: formula,
-                            options: shuffle(optionsSingle.map(o => o.toString())),
-                            type: "Круги Эйлера"
-                        });
-                        correctAnswers.push(correctIndexSingle);
-                        continue;
+                        correct = setA + setB - 2 * both;
+                        break;
                     case 5:
                         formula = `В школе ${total} учеников. ${setA} любят математику, ${setB} - физику, ${both} - обе науки. Сколько учеников не любят ни математику, ни физику?`;
-                        wrong = [setA+setB-both, total-both, setA+setB-2*both, Math.abs(setA-setB)];
+                        correct = total - setA - setB + both;
                         break;
                 }
                 
-                const options = [...wrong];
-                const correctIndex = rng(0, 3);
-                options[correctIndex] = correct;
+                const {options, correctIndex} = generateUniqueOptions(correct, true);
+                
                 questions.push({
                     text: formula,
-                    options: shuffle(options.map(o => o.toString())),
+                    options: options,
                     type: "Круги Эйлера"
                 });
                 correctAnswers.push(correctIndex);
             }
             
             // 3. Таблицы истинности (5 вопросов)
-            const logicQuestions = [
-                { a: 3, b: 7, op: "И", answer: 5 },
-                { a: 5, op: "ИЛИ", answer: 5 },
-                { a: 4, b: 2, op: "НЕ", answer: 4 },
-                { a: 3, b: 5, c: 2, d: 6, answer: 4 },
-                { a: 2, b: 6, exclude: 4, answer: 3 }
+            const logicData = [
+                {
+                    a: rng(3, 5),
+                    b: rng(6, 8),
+                    answer: () => {
+                        const a = rng(3, 5);
+                        const b = rng(6, 8);
+                        return rng(a + 1, b - 1);
+                    }
+                },
+                {
+                    a: rng(3, 6),
+                    answer: () => rng(3, 6)
+                },
+                {
+                    a: rng(3, 6),
+                    b: rng(1, 3),
+                    answer: () => rng(3, 6)
+                },
+                {
+                    a: rng(2, 4),
+                    b: rng(5, 7),
+                    c: rng(1, 2),
+                    d: rng(8, 10),
+                    answer: (a, b, c, d) => {
+                        const possible = [];
+                        for(let x = c + 1; x < d; x++) {
+                            if(x !== a && x !== b) possible.push(x);
+                        }
+                        return possible[Math.floor(Math.random() * possible.length)];
+                    }
+                },
+                {
+                    a: rng(2, 4),
+                    b: rng(6, 8),
+                    exclude: rng(3, 5),
+                    answer: (a, b, exclude) => {
+                        const possible = [];
+                        for(let x = a + 1; x < b; x++) {
+                            if(x !== exclude) possible.push(x);
+                        }
+                        return possible[Math.floor(Math.random() * possible.length)];
+                    }
+                }
             ];
             
-            logicQuestions.forEach((q, idx) => {
-                let text = "";
-                let options = [];
+            logicData.forEach((data, idx) => {
+                let text, correct;
                 
                 if(idx === 0) {
-                    text = `Для какого значения X истинно высказывание: (X > ${q.a}) И (X < ${q.b})?`;
-                    options = [q.answer-2, q.answer-1, q.answer+1, q.answer+2];
+                    correct = data.answer();
+                    text = `Для какого значения X истинно высказывание: (X > ${data.a}) И (X < ${data.b})?`;
                 } else if(idx === 1) {
-                    text = `Для какого значения X ложно высказывание: (X > ${q.a}) ИЛИ (X < ${q.a})?`;
-                    options = [q.a-2, q.a, q.a+1, q.a+2];
+                    correct = data.a;
+                    text = `Для какого значения X ложно высказывание: (X > ${data.a}) ИЛИ (X < ${data.a})?`;
                 } else if(idx === 2) {
-                    text = `Для какого значения X истинно высказывание: НЕ(X < ${q.a}) И (X > ${q.b})?`;
-                    options = [q.a-2, q.b, q.a, q.a+1];
+                    correct = data.answer();
+                    text = `Для какого значения X истинно высказывание: НЕ(X < ${data.a}) И (X > ${data.b})?`;
                 } else if(idx === 3) {
-                    text = `Для какого значения X ложно высказывание: (X ≠ ${q.a}) И (X ≠ ${q.b}) И (X > ${q.c}) И (X < ${q.d})?`;
-                    options = [q.answer-2, q.answer+1, q.answer+2, q.answer];
+                    correct = data.answer(data.a, data.b, data.c, data.d);
+                    text = `Для какого значения X ложно высказывание: (X ≠ ${data.a}) И (X ≠ ${data.b}) И (X > ${data.c}) И (X < ${data.d})?`;
                 } else {
-                    text = `Для какого значения X истинно высказывание: (X > ${q.a}) И (X < ${q.b}) И (X ≠ ${q.exclude})?`;
-                    options = [q.answer-1, q.answer+1, q.answer+2, 
-                        [q.answer-1, q.answer, q.answer+1, q.answer+2].find(x => x > q.a && x < q.b && x !== q.exclude && !options.includes(x))];
+                    correct = data.answer(data.a, data.b, data.exclude);
+                    text = `Для какого значения X истинно высказывание: (X > ${data.a}) И (X < ${data.b}) И (X ≠ ${data.exclude})?`;
                 }
                 
-                const correctIndex = rng(0, 3);
-                options[correctIndex] = q.answer;
+                const {options, correctIndex} = generateUniqueOptions(correct, true);
+                
                 questions.push({
-                    text,
-                    options: shuffle(options.map(o => o.toString())),
+                    text: text,
+                    options: options,
                     type: "Таблицы истинности"
                 });
                 correctAnswers.push(correctIndex);
@@ -665,28 +683,40 @@
                 { event: "Распад СССР", year: 1991 }
             ];
             
-            const event = historyEvents[rng(0, historyEvents.length-1)];
-            const options = [event.year-10, event.year-1, event.year+1, event.year+10];
-            const correctIndex = rng(0, 3);
-            options[correctIndex] = event.year;
+            const event = historyEvents[Math.floor(Math.random() * historyEvents.length)];
+            const {options: historyOptions, correctIndex: historyCorrectIndex} = generateUniqueOptions(event.year, true);
             
             questions.push({
                 text: `В каком году произошло ${event.event}?`,
-                options: shuffle(options.map(o => o.toString())),
+                options: historyOptions,
                 type: "История России"
             });
-            correctAnswers.push(correctIndex);
+            correctAnswers.push(historyCorrectIndex);
             
-            // Генерируем пароль
+            // Генерируем пароли
             const password = correctAnswers.map(a => a + 1).join('');
             const unlockCode = Array.from({length: 8}, () => rng(0, 9)).join('');
+            
+            // Проверяем, что все варианты уникальны
+            let allUnique = true;
+            for(let q of questions) {
+                const set = new Set(q.options);
+                if(set.size !== 4) {
+                    console.warn("Обнаружены повторяющиеся варианты:", q.options);
+                    allUnique = false;
+                }
+            }
+            
+            if(!allUnique) {
+                console.error("Есть вопросы с повторяющимися вариантами! Перегенерируем...");
+                return generateGame();
+            }
             
             return {
                 questions,
                 correctAnswers,
                 password,
-                unlockCode,
-                seed
+                unlockCode
             };
         }
         
@@ -709,6 +739,7 @@
             console.log("=== ИНФОРМАЦИЯ ДЛЯ ПРОВЕРКИ ===");
             console.log("Пароль для прохождения:", correctPassword);
             console.log("Пароль разблокировки:", unlockPassword);
+            console.log("Проверка уникальности вариантов: ✓");
             console.log("==============================");
             
             gameState = "questions";
@@ -1083,7 +1114,7 @@
             
             console.log("=== SYSTEM_BREACH.exe ===");
             console.log("Игра загружена. Нажмите 'АКТИВИРОВАТЬ СИСТЕМУ' для начала.");
-            console.log("Пароль будет показан в консоли после запуска.");
+            console.log("Все варианты ответов гарантированно уникальны.");
             console.log("========================");
         };
     </script>
