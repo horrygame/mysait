@@ -437,28 +437,97 @@
     </div>
 
     <script>
-        // === ГЕНЕРАТОР ВОПРОСОВ БЕЗ ПОВТОРЕНИЙ ===
+        // === ГЕНЕРАТОР ВОПРОСОВ БЕЗ ПОВТОРЕНИЙ И СИНОНИМОВ ===
         let currentGame = null;
         let userAnswers = Array(17).fill(-1);
+        
+        // Все возможные уникальные названия систем счисления (без синонимов)
+        const ALL_BASE_NAMES = [
+            "двоичной", "троичной", "четверичной", "пятеричной",
+            "шестеричной", "семеричной", "восьмеричной", "девятеричной",
+            "десятичной", "одиннадцатеричной", "двенадцатеричной",
+            "тринадцатеричной", "четырнадцатеричной", "пятнадцатеричной",
+            "шестнадцатеричной"
+        ];
+        
+        // Словарь перевода номера системы в название
+        const BASE_NAME_MAP = {
+            2: "двоичной",
+            3: "троичной", 
+            4: "четверичной",
+            5: "пятеричной",
+            6: "шестеричной",
+            7: "семеричной",
+            8: "восьмеричной",
+            9: "девятеричной",
+            10: "десятичной",
+            11: "одиннадцатеричной",
+            12: "двенадцатеричной",
+            13: "тринадцатеричной",
+            14: "четырнадцатеричной",
+            15: "пятнадцатеричной",
+            16: "шестнадцатеричной"
+        };
         
         function generateUniqueOptions(correctValue, isNumeric = true) {
             const options = new Set();
             options.add(correctValue);
             
-            while(options.size < 4) {
+            const attemptsLimit = 100; // Защита от бесконечного цикла
+            let attempts = 0;
+            
+            while(options.size < 4 && attempts < attemptsLimit) {
+                attempts++;
                 let option;
+                
                 if(isNumeric) {
+                    // Для числовых вариантов
                     const delta = Math.floor(Math.random() * 5) + 1;
                     const sign = Math.random() > 0.5 ? 1 : -1;
                     option = correctValue + (delta * sign);
-                    if(option < 0) option = correctValue + delta;
+                    
+                    // Убедимся, что число положительное и не равно уже существующим
+                    if(option <= 0) {
+                        option = correctValue + delta;
+                    }
+                    
+                    // Проверяем уникальность
+                    if(!options.has(option) && option !== correctValue) {
+                        options.add(option);
+                    }
                 } else {
-                    // Для текстовых вариантов
-                    const fakeBases = ["двоичной", "троичной", "пятеричной", "семеричной", 
-                                      "девятеричной", "одиннадцатеричной", "тринадцатеричной"];
-                    option = fakeBases[Math.floor(Math.random() * fakeBases.length)];
+                    // Для текстовых вариантов (системы счисления)
+                    // Исключаем правильный ответ
+                    const availableNames = ALL_BASE_NAMES.filter(name => name !== correctValue);
+                    
+                    // Берем случайное имя из доступных
+                    option = availableNames[Math.floor(Math.random() * availableNames.length)];
+                    
+                    // Проверяем, что это не синоним (у нас все имена уникальны)
+                    if(!options.has(option)) {
+                        options.add(option);
+                    }
                 }
-                options.add(option);
+            }
+            
+            // Если не удалось сгенерировать достаточно уникальных вариантов
+            if(options.size < 4) {
+                // Добавляем гарантированно уникальные варианты
+                if(isNumeric) {
+                    const extraOptions = [correctValue + 10, correctValue + 20, correctValue + 30, correctValue - 10].filter(v => v > 0);
+                    for(let opt of extraOptions) {
+                        if(options.size < 4 && !options.has(opt)) {
+                            options.add(opt);
+                        }
+                    }
+                } else {
+                    // Для систем счисления берем из общего списка
+                    for(let name of ALL_BASE_NAMES) {
+                        if(options.size < 4 && name !== correctValue && !options.has(name)) {
+                            options.add(name);
+                        }
+                    }
+                }
             }
             
             // Преобразуем в массив и перемешиваем
@@ -483,10 +552,11 @@
             
             // 1. Системы счисления (6 вопросов)
             for(let i = 0; i < 6; i++) {
-                let text, result, isNumeric, correctValue;
+                let text, correctValue, isNumeric;
                 
                 switch(i) {
                     case 0:
+                        // Двоичное в десятичное
                         const num1 = rng(32, 63);
                         const binary1 = num1.toString(2);
                         correctValue = parseInt(binary1, 2);
@@ -495,17 +565,20 @@
                         break;
                         
                     case 1:
-                        const base = rng(5, 8);
+                        // Система счисления равенства
+                        const base = rng(5, 16);
                         const a = rng(5, 12);
                         const b = rng(5, 12);
                         const sum = a + b;
                         const sumStr = sum.toString(base);
-                        correctValue = `${base}-ичной`;
+                        
+                        correctValue = BASE_NAME_MAP[base];
                         text = `В какой системе счисления выполняется равенство ${a} + ${b} = ${sumStr}?`;
                         isNumeric = false;
                         break;
                         
                     case 2:
+                        // Единицы в двоичной записи
                         const num2 = rng(60, 100);
                         correctValue = num2.toString(2).split('1').length - 1;
                         text = `Сколько единиц в двоичной записи числа ${num2}?`;
@@ -513,22 +586,25 @@
                         break;
                         
                     case 3:
+                        // Сумма двоичных чисел
                         const a3 = rng(5, 10);
                         const b3 = rng(5, 10);
                         const sum3 = a3 + b3;
                         correctValue = sum3.toString(2);
                         text = `Чему равна сумма чисел ${a3.toString(2)}₂ и ${b3.toString(2)}₂ в двоичной системе?`;
-                        isNumeric = false;
+                        isNumeric = false; // Строковое представление двоичного числа
                         break;
                         
                     case 4:
+                        // Десятичное в восьмеричное
                         const num4 = rng(50, 150);
                         correctValue = num4.toString(8);
                         text = `Переведите десятичное число ${num4} в восьмеричную систему.`;
-                        isNumeric = false;
+                        isNumeric = false; // Строковое представление восьмеричного числа
                         break;
                         
                     case 5:
+                        // Шестнадцатеричное в десятичное
                         const hexNum = rng(160, 250);
                         const hexStr = hexNum.toString(16).toUpperCase();
                         correctValue = hexNum;
@@ -556,7 +632,7 @@
                 
                 let formula, correct;
                 
-                switch(i % 6) {
+                switch(i) {
                     case 0:
                         formula = `${total} человек. ${setA} занимаются спортом, ${setB} - музыкой, ${both} - и тем и другим. Сколько человек ничем не занимаются?`;
                         correct = total - setA - setB + both;
@@ -594,70 +670,52 @@
             }
             
             // 3. Таблицы истинности (5 вопросов)
-            const logicData = [
-                {
-                    a: rng(3, 5),
-                    b: rng(6, 8),
-                    answer: () => {
-                        const a = rng(3, 5);
-                        const b = rng(6, 8);
-                        return rng(a + 1, b - 1);
-                    }
-                },
-                {
-                    a: rng(3, 6),
-                    answer: () => rng(3, 6)
-                },
-                {
-                    a: rng(3, 6),
-                    b: rng(1, 3),
-                    answer: () => rng(3, 6)
-                },
-                {
-                    a: rng(2, 4),
-                    b: rng(5, 7),
-                    c: rng(1, 2),
-                    d: rng(8, 10),
-                    answer: (a, b, c, d) => {
-                        const possible = [];
-                        for(let x = c + 1; x < d; x++) {
-                            if(x !== a && x !== b) possible.push(x);
-                        }
-                        return possible[Math.floor(Math.random() * possible.length)];
-                    }
-                },
-                {
-                    a: rng(2, 4),
-                    b: rng(6, 8),
-                    exclude: rng(3, 5),
-                    answer: (a, b, exclude) => {
-                        const possible = [];
-                        for(let x = a + 1; x < b; x++) {
-                            if(x !== exclude) possible.push(x);
-                        }
-                        return possible[Math.floor(Math.random() * possible.length)];
-                    }
-                }
-            ];
-            
-            logicData.forEach((data, idx) => {
+            for(let i = 0; i < 5; i++) {
                 let text, correct;
                 
-                if(idx === 0) {
-                    correct = data.answer();
-                    text = `Для какого значения X истинно высказывание: (X > ${data.a}) И (X < ${data.b})?`;
-                } else if(idx === 1) {
-                    correct = data.a;
-                    text = `Для какого значения X ложно высказывание: (X > ${data.a}) ИЛИ (X < ${data.a})?`;
-                } else if(idx === 2) {
-                    correct = data.answer();
-                    text = `Для какого значения X истинно высказывание: НЕ(X < ${data.a}) И (X > ${data.b})?`;
-                } else if(idx === 3) {
-                    correct = data.answer(data.a, data.b, data.c, data.d);
-                    text = `Для какого значения X ложно высказывание: (X ≠ ${data.a}) И (X ≠ ${data.b}) И (X > ${data.c}) И (X < ${data.d})?`;
-                } else {
-                    correct = data.answer(data.a, data.b, data.exclude);
-                    text = `Для какого значения X истинно высказывание: (X > ${data.a}) И (X < ${data.b}) И (X ≠ ${data.exclude})?`;
+                switch(i) {
+                    case 0:
+                        const a0 = rng(3, 5);
+                        const b0 = rng(6, 8);
+                        correct = rng(a0 + 1, b0 - 1);
+                        text = `Для какого значения X истинно высказывание: (X > ${a0}) И (X < ${b0})?`;
+                        break;
+                    case 1:
+                        const a1 = rng(3, 6);
+                        correct = a1;
+                        text = `Для какого значения X ложно высказывание: (X > ${a1}) ИЛИ (X < ${a1})?`;
+                        break;
+                    case 2:
+                        const a2 = rng(3, 6);
+                        const b2 = rng(1, 3);
+                        correct = rng(Math.max(a2, b2 + 1), a2 + 2);
+                        text = `Для какого значения X истинно высказывание: НЕ(X < ${a2}) И (X > ${b2})?`;
+                        break;
+                    case 3:
+                        const a3 = rng(2, 4);
+                        const b3 = rng(5, 7);
+                        const c3 = rng(1, 2);
+                        const d3 = rng(8, 10);
+                        // Находим число между c3 и d3, которое не равно a3 и b3
+                        const possible3 = [];
+                        for(let x = c3 + 1; x < d3; x++) {
+                            if(x !== a3 && x !== b3) possible3.push(x);
+                        }
+                        correct = possible3[Math.floor(Math.random() * possible3.length)];
+                        text = `Для какого значения X ложно высказывание: (X ≠ ${a3}) И (X ≠ ${b3}) И (X > ${c3}) И (X < ${d3})?`;
+                        break;
+                    case 4:
+                        const a4 = rng(2, 4);
+                        const b4 = rng(6, 8);
+                        const exclude4 = rng(a4 + 1, b4 - 1);
+                        // Находим число между a4 и b4, которое не равно exclude4
+                        const possible4 = [];
+                        for(let x = a4 + 1; x < b4; x++) {
+                            if(x !== exclude4) possible4.push(x);
+                        }
+                        correct = possible4[Math.floor(Math.random() * possible4.length)];
+                        text = `Для какого значения X истинно высказывание: (X > ${a4}) И (X < ${b4}) И (X ≠ ${exclude4})?`;
+                        break;
                 }
                 
                 const {options, correctIndex} = generateUniqueOptions(correct, true);
@@ -668,7 +726,7 @@
                     type: "Таблицы истинности"
                 });
                 correctAnswers.push(correctIndex);
-            });
+            }
             
             // 4. История России (последний вопрос)
             const historyEvents = [
@@ -693,11 +751,7 @@
             });
             correctAnswers.push(historyCorrectIndex);
             
-            // Генерируем пароли
-            const password = correctAnswers.map(a => a + 1).join('');
-            const unlockCode = Array.from({length: 8}, () => rng(0, 9)).join('');
-            
-            // Проверяем, что все варианты уникальны
+            // Проверяем уникальность всех вариантов
             let allUnique = true;
             for(let q of questions) {
                 const set = new Set(q.options);
@@ -708,9 +762,13 @@
             }
             
             if(!allUnique) {
-                console.error("Есть вопросы с повторяющимися вариантами! Перегенерируем...");
+                console.warn("Перегенерируем игру из-за повторяющихся вариантов");
                 return generateGame();
             }
+            
+            // Генерируем пароли
+            const password = correctAnswers.map(a => a + 1).join('');
+            const unlockCode = Array.from({length: 8}, () => rng(0, 9)).join('');
             
             return {
                 questions,
@@ -739,7 +797,8 @@
             console.log("=== ИНФОРМАЦИЯ ДЛЯ ПРОВЕРКИ ===");
             console.log("Пароль для прохождения:", correctPassword);
             console.log("Пароль разблокировки:", unlockPassword);
-            console.log("Проверка уникальности вариантов: ✓");
+            console.log("Все варианты ответов уникальны: ✓");
+            console.log("Нет синонимов '7-ичной'/'семеричной': ✓");
             console.log("==============================");
             
             gameState = "questions";
@@ -1114,7 +1173,7 @@
             
             console.log("=== SYSTEM_BREACH.exe ===");
             console.log("Игра загружена. Нажмите 'АКТИВИРОВАТЬ СИСТЕМУ' для начала.");
-            console.log("Все варианты ответов гарантированно уникальны.");
+            console.log("Все варианты ответов уникальны, синонимы исключены.");
             console.log("========================");
         };
     </script>
